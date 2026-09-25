@@ -5,6 +5,8 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 from langgraph.graph import StateGraph, START, END
 
+from support_assistant.models import AnswerResponse
+
 
 class SupportState(TypedDict, total=False):
     query: str
@@ -69,10 +71,10 @@ def retrieve_and_answer(state: SupportState):
     documents = results["documents"][0]
     ids = results["ids"][0]
 
-    top_chunk = documents[0][:200]
+    top_chunk_snippet = documents[0][:200]
 
     if mock_llm_enabled():
-        answer = f"Based on the retrieved context: {top_chunk}"
+        answer = f"Based on the retrieved context: {top_chunk_snippet}"
     else:
         raise NotImplementedError("Real LLM answer generation is optional.")
 
@@ -117,3 +119,18 @@ builder.add_edge("retrieve_and_answer", END)
 builder.add_edge("direct_answer", END)
 
 graph = builder.compile()
+
+
+def make_response(result):
+    if result["intent"] == "policy_question":
+        return AnswerResponse(
+            answer=result["answer"],
+            sources=result["retrieved_ids"],
+            confidence=1.0
+        )
+
+    return AnswerResponse(
+        answer=result["answer"],
+        sources=[],
+        confidence=1.0
+    )
