@@ -3,19 +3,25 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
+from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from statsmodels.stats.diagnostic import het_breuschpagan
 import statsmodels.api as sm
 
 
-df = sns.load_dataset("titanic")
+# Load data
+df = pd.read_csv("analytics/titanic.csv")
 
 
 # Handle missing values
+df = df.dropna(subset=["embarked", "embark_town"])
+
 df["age"] = df["age"].fillna(df["age"].median())
-df["embarked"] = df["embarked"].fillna(df["embarked"].mode()[0])
+
+df = df.drop(columns=["deck"])
 
 
 # Select features and target
@@ -41,6 +47,10 @@ X = pd.get_dummies(
 )
 
 
+# Convert boolean columns into numbers
+X = X.astype(float)
+
+
 # Split data
 X_train, X_test, y_train, y_test = train_test_split(
     X,
@@ -50,10 +60,39 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 
+# Fill missing values using training data
+imputer = SimpleImputer(
+    strategy="median"
+)
+
+X_train = pd.DataFrame(
+    imputer.fit_transform(X_train),
+    columns=X_train.columns,
+    index=X_train.index
+)
+
+X_test = pd.DataFrame(
+    imputer.transform(X_test),
+    columns=X_test.columns,
+    index=X_test.index
+)
+
+
+# Standardize features
+scaler = StandardScaler()
+
+X_train = scaler.fit_transform(X_train)
+
+X_test = scaler.transform(X_test)
+
+
 # Train linear regression model
 model = LinearRegression()
 
-model.fit(X_train, y_train)
+model.fit(
+    X_train,
+    y_train
+)
 
 
 # Predictions
@@ -76,6 +115,8 @@ r2 = r2_score(
     predictions
 )
 
+
+# Adjusted R2
 n = len(y_test)
 p = X_test.shape[1]
 
@@ -100,23 +141,29 @@ residuals = y_test - predictions
 
 # Residual plot
 plt.figure(figsize=(8, 5))
+
 sns.scatterplot(
     x=predictions,
     y=residuals
 )
+
 plt.axhline(
     0,
     linestyle="--"
 )
+
 plt.title("Residual Plot")
 plt.xlabel("Predicted Fare")
 plt.ylabel("Residuals")
+
 plt.tight_layout()
 plt.show()
 
 
 # Breusch-Pagan test
-X_test_with_constant = sm.add_constant(X_test)
+X_test_with_constant = sm.add_constant(
+    X_test
+)
 
 bp_test = het_breuschpagan(
     residuals,
@@ -126,9 +173,11 @@ bp_test = het_breuschpagan(
 lm_statistic = bp_test[0]
 lm_pvalue = bp_test[1]
 
+
 print("\nBreusch-Pagan Test")
 print("LM Statistic:", lm_statistic)
 print("LM p-value:", lm_pvalue)
+
 
 if lm_pvalue < 0.05:
     print("Evidence of heteroscedasticity detected.")

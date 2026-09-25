@@ -1,5 +1,4 @@
 import pandas as pd
-import seaborn as sns
 import joblib
 
 from sklearn.model_selection import train_test_split
@@ -10,9 +9,19 @@ from sklearn.impute import SimpleImputer
 from sklearn.ensemble import RandomForestClassifier
 
 
-df = sns.load_dataset("titanic")
+# Load data
+df = pd.read_csv("analytics/titanic.csv")
 
 
+# Handle missing values
+df = df.dropna(subset=["embarked", "embark_town"])
+
+df["age"] = df["age"].fillna(df["age"].median())
+
+df = df.drop(columns=["deck"])
+
+
+# Select features and target
 features = [
     "pclass",
     "age",
@@ -27,6 +36,7 @@ X = df[features]
 y = df["survived"]
 
 
+# Feature types
 numeric_features = [
     "pclass",
     "age",
@@ -41,12 +51,14 @@ categorical_features = [
 ]
 
 
+# Numeric preprocessing
 numeric_pipeline = Pipeline([
     ("imputer", SimpleImputer(strategy="median")),
     ("scaler", StandardScaler())
 ])
 
 
+# Categorical preprocessing
 categorical_pipeline = Pipeline([
     ("imputer", SimpleImputer(strategy="most_frequent")),
     ("encoder", OneHotEncoder(
@@ -56,6 +68,7 @@ categorical_pipeline = Pipeline([
 ])
 
 
+# Preprocessor
 preprocessor = ColumnTransformer([
     (
         "numeric",
@@ -70,6 +83,7 @@ preprocessor = ColumnTransformer([
 ])
 
 
+# Random Forest model
 model = RandomForestClassifier(
     n_estimators=200,
     max_depth=10,
@@ -78,12 +92,14 @@ model = RandomForestClassifier(
 )
 
 
+# Complete pipeline
 pipeline = Pipeline([
     ("preprocessing", preprocessor),
     ("model", model)
 ])
 
 
+# Split data
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
@@ -93,12 +109,17 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 
-pipeline.fit(X_train, y_train)
+# Train pipeline
+pipeline.fit(
+    X_train,
+    y_train
+)
 
 
 print("Pipeline trained successfully!")
 
 
+# Save pipeline
 model_path = "analytics/titanic_model.joblib"
 
 joblib.dump(
@@ -109,8 +130,10 @@ joblib.dump(
 print("Pipeline saved to:", model_path)
 
 
-# Reload pipeline
-loaded_pipeline = joblib.load(model_path)
+# Load pipeline
+loaded_pipeline = joblib.load(
+    model_path
+)
 
 print("Pipeline loaded successfully!")
 
@@ -127,8 +150,14 @@ raw_input = pd.DataFrame({
 })
 
 
-prediction = loaded_pipeline.predict(raw_input)
-probability = loaded_pipeline.predict_proba(raw_input)[0][1]
+# Prediction
+prediction = loaded_pipeline.predict(
+    raw_input
+)
+
+probability = loaded_pipeline.predict_proba(
+    raw_input
+)[0][1]
 
 
 print("\nRaw input:")
