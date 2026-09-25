@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+.env.*
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+
+# Data
+*.sqlite
+*.db
+
+# Generated models
+*.pkl
+*.joblib
+
+# Generated vector database
+module3_genai_assistant/vector_store/*
+
+# Python cache
+.pytest_cache/
+
+# Logs
+*.log
