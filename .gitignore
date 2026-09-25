@@ -27,7 +27,6 @@ env/
 
 # Generated models
 *.pkl
-*.joblib
 
 # Generated vector database
 module3_genai_assistant/vector_store/*
