@@ -69,7 +69,9 @@ def retrieve_and_answer(state: SupportState):
     )
 
     documents = results["documents"][0]
-    ids = results["ids"][0]
+    metadatas = results["metadatas"][0]
+
+    source_ids = [metadata["source"] for metadata in metadatas]
 
     top_chunk_snippet = documents[0][:200]
 
@@ -79,7 +81,7 @@ def retrieve_and_answer(state: SupportState):
         raise NotImplementedError("Real LLM answer generation is optional.")
 
     return {
-        "retrieved_ids": ids,
+        "retrieved_ids": source_ids,
         "retrieved_docs": documents,
         "answer": answer
     }
