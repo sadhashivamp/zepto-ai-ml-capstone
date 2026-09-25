@@ -75,4 +75,6 @@ pandas.read_sql() is used for the query results.
 
 The SQL JOIN result is also reproduced using Pandas merge() and compared with the SQL result.
 
+## Module 1 Result
 
+The final cleaned dataset contains 71 books from 4 categories.
