@@ -21,8 +21,17 @@ df["price_gbp"] = (
     df["price"]
     .str.replace("£", "", regex=False)
     .str.replace("Â", "", regex=False)
-    .astype(float)
 )
+
+df["price_gbp"] = pd.to_numeric(
+    df["price_gbp"],
+    errors="coerce"
+)
+
+if df["price_gbp"].isnull().any():
+    df["price_gbp"] = df["price_gbp"].fillna(
+        df["price_gbp"].median()
+    )
 
 df["price_inr"] = df["price_gbp"] * 105.50
 
@@ -37,6 +46,11 @@ rating_map = {
 }
 
 df["rating"] = df["star_rating"].map(rating_map)
+
+if df["rating"].isnull().any():
+    df["rating"] = df["rating"].fillna(
+        df["rating"].median()
+    )
 
 
 # Convert availability to boolean
